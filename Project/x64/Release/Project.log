@@ -1,0 +1,22 @@
+﻿  ec.cpp
+ec.cpp(181): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  ec_ops.cpp
+  uberzahl.cpp
+uberzahl.cpp(140): warning C4244: '+=': conversion from 'unsigned __int64' to 'unsigned int', possible loss of data
+uberzahl.cpp(203): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned int', possible loss of data
+uberzahl.cpp(235): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+uberzahl.cpp(288): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+uberzahl.cpp(317): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+uberzahl.cpp(320): warning C4244: '=': conversion from 'unsigned __int64' to 'unsigned int', possible loss of data
+uberzahl.cpp(341): warning C4244: 'return': conversion from 'unsigned __int64' to 'unsigned int', possible loss of data
+uberzahl.cpp(363): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+uberzahl.cpp(409): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+uberzahl.cpp(587): warning C4244: 'initializing': conversion from 'unsigned __int64' to 'unsigned int', possible loss of data
+uberzahl.cpp(594): warning C4554: '<<': check operator precedence for possible error; use parentheses to clarify precedence
+uberzahl.cpp(620): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Generating code
+  0 of 337 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Project.vcxproj -> C:\Users\Matt\Source\Repos\EECS475\Project\x64\Release\Project.exe

@@ -4,37 +4,94 @@
 #include <utility>
 #include <cassert>
 #include "ec_ops.h"
+#include <ctime>
 using namespace std;
 
 Zp Zp::inverse() const{
-	// Implement the Extended Euclidean Algorithm to return the inverse mod PRIME		
+	// Implement the Extended Euclidean Algorithm to return the inverse mod PRIME
+	// Finds an x and y that satisfy the equation value(x) + PRIME(y) = 1 mod PRIME
+	// We only care about x
+	uberzahl P = PRIME;
+	uberzahl V = value;
 
-	assert(0);
-	return 0;
+	uberzahl x("1");
+	uberzahl y("0");
+	
+	while(V > 1)
+	{
+		uberzahl Q = V / P;
+
+		uberzahl temp = P;
+		P = V - P*(Q);
+		V = temp;
+
+		temp = y;
+		y = x - (Q*y);
+		x = temp;
+	}
+
+	return x;
 }
 
 
 ECpoint ECpoint::operator + (const ECpoint &a) const {
 	// Implement  elliptic curve addition 		
+	if (infinityPoint || a.infinityPoint)
+		return this;
 
-	assert(0);
+	//They are the same
+	bool samePoint = (x == a.x) && (y == a.y);
+	if (samePoint && !((y * Zp("2")) == Zp("0")))
+	{
+		Zp lambda = (((x*x) * Zp("3")) + A)*((y * Zp("2")).inverse());
+		Zp xr = (lambda*lambda) - (x * Zp("2"));
+		Zp yr = (y * Zp(-1)) + (lambda * (x - xr));
+		return ECpoint(xr, yr);
+	}
+	if (!samePoint && !(x == a.x))
+	{
+		Zp lambda = (a.y - y)*((a.x - x).inverse());
+		Zp xr = (lambda*lambda) - x - a.x;
+		Zp yr = (y * Zp(-1)) + (lambda * (x - xr));
+		return ECpoint(xr, yr);
+	}
+
+
 	return ECpoint(true);
 }
 
 
 ECpoint ECpoint::repeatSum(ECpoint p, uberzahl v) const {
-	//Find the sum of p+p+...+p (vtimes)		
+	//Find the sum of p+p+...+p (vtimes)	
+	//This is tail recursion so shouldn't run out of stack space.
+	if (v == "0")
+		return ECpoint(true);
+	if (v == "1")
+		return p;
 
-	assert(0);
-	return ECpoint(true);
+	if ((v.bit(0)) == 0)
+		return repeatSum(p + p, v / "2");
+	else
+		return p + repeatSum(p, v - "1");
+
+	
 }
 
 Zp ECsystem::power(Zp val, uberzahl pow) {
 	//Find the product of val*val*...*val (pow times)
+	//This is tail recursion so shouldn't run out of stack space.
+	if (pow == "0")
+		return Zp("1");
+	if (pow == "1")
+		return val;
 
-	assert(0);
-	return 0;
+	if ((pow.bit(0)) == 0)
+		return power(val * val, pow / "2");
+	else
+		return val * power(val * val, (pow - "1") / "2");
+		
 }
+
 
 
 uberzahl ECsystem::pointCompress(ECpoint e) {
@@ -50,7 +107,7 @@ uberzahl ECsystem::pointCompress(ECpoint e) {
 		abort();
 		}
 	else {
-		if (e.y.getValue()%2 == 1)
+		if (e.y.getValue().bit(0) == 1)
 			compressedPoint = compressedPoint + 1;
 		}
 		//cout<<"For point  "<<e<<"  Compressed point is <<"<<compressedPoint<<"\n";
@@ -60,9 +117,20 @@ uberzahl ECsystem::pointCompress(ECpoint e) {
 
 ECpoint ECsystem::pointDecompress(uberzahl compressedPoint){
 	//Implement the delta function for decompressing the compressed point
+	Zp xr(compressedPoint / "2");
+	smallType br = compressedPoint.bit(0);
 
-	assert(0);
-	return ECpoint(true);
+	Zp z = (xr*xr*xr) + (xr * A) + B;
+
+	uberzahl pow = (PRIME + "1") / "4";
+	Zp yr1 = power(z, pow);
+	Zp yr2 = Zp("-1") * power(z, pow);
+
+	if ((yr1.getValue().bit(0)) == br)
+		return ECpoint(xr, yr1);
+	else
+		return ECpoint(xr, yr2);
+	
 }
 
 
@@ -70,16 +138,29 @@ pair<pair<Zp,Zp>,uberzahl> ECsystem::encrypt(ECpoint publicKey, uberzahl private
 	// You must implement elliptic curve encryption
 	//  Do not generate a random key. Use the private key that is passed from the main function
 
-	assert(0);
-	return make_pair(make_pair(0,0),0);
+	ECpoint Q = privateKey * G;
+	ECpoint R = privateKey * publicKey;
+
+	Zp C0 = plaintext0 * R.x;
+	Zp C1 = plaintext1 * R.y;
+	uberzahl C2 = pointCompress(Q);
+
+	return make_pair(make_pair(C0,C1),C2);
 }
 
 
 pair<Zp,Zp> ECsystem::decrypt(pair<pair<Zp,Zp>, uberzahl> ciphertext){
 	// Implement EC Decryption
+	Zp C0 = ciphertext.first.first;
+	Zp C1 = ciphertext.first.second;
+	uberzahl C2 = ciphertext.second;
 
-	assert(0);
-	return make_pair(0,0);
+	ECpoint R = privateKey * pointDecompress(C2);
+
+	Zp M0 = C0 * R.x.inverse();
+	Zp M1 = C1 * R.y.inverse();
+
+	return make_pair(M0,M1);
 }
 
 
@@ -95,6 +176,8 @@ pair<Zp,Zp> ECsystem::decrypt(pair<pair<Zp,Zp>, uberzahl> ciphertext){
 
 
 int main(void){
+	
+	
 	srand(time(0));
 	ECsystem ec;
 	unsigned long incrementVal;	
@@ -121,9 +204,11 @@ int main(void){
 	if(plaintext0 == plaintext_out.first && plaintext1 == plaintext_out.second)
 		cout << "Correct!" << endl;
 	else
-		cout << "Plaintext different from original plaintext." << endl;	
+		cout << "Plaintext different from original plaintext." << endl;
+	
+
 			
-	return 1;
+	return 0;
 
 }
 
